@@ -31,9 +31,10 @@ var waitForFinalEvent = (function () {
 			zoomable: true,
 			dragable: true,
 			onClick: $.noop,
-			onReady: $.noop
+			onReady: $.noop,
+			actLikeAMap: false,
 		},
-		
+
 		_create: function() {
 			var self = this;
 			if (!$(this.element).is("img")) {
@@ -74,7 +75,7 @@ var waitForFinalEvent = (function () {
 					};
 /*
  *			cache the image margin/border size information
- *			because of IE8 limitations left and right borders are assumed to be the same width 
+ *			because of IE8 limitations left and right borders are assumed to be the same width
  *			and likewise top and bottom borders
  */
 					self.offsetBorder = {
@@ -97,9 +98,39 @@ var waitForFinalEvent = (function () {
 								height: height+"px"
 					});
 //			add the leaflet map
-					self.bounds = L.latLngBounds(L.latLng(0,0), L.latLng(self.img.naturalHeight,self.img.naturalWidth));
-					self.map = L.map($view.attr('id'), {crs:L.CRS.Simple,
-														minZoom: -10,
+					var maxLng = self.img.naturalWidth;
+					var maxLat = self.img.naturalHeight;
+					var lngOffset = 0;
+					var latOffset = 0;
+					var crs = L.CRS.Simple;
+
+					// switch to a smaller coordinate system
+					if(this.options.smallScope)
+					{
+						var normTo = 0.0001;
+						var factor = 0;
+						if(maxLat > maxLng){
+							factor = normTo/maxLat;
+						}
+						else{
+							factor = normTo/maxLng;
+						}
+						lngOffset = 6.08342;
+						latOffset = 50.77664;
+						maxLng = factor * maxLng;
+						maxLat = factor * maxLat;
+						maxLng = maxLng + lngOffset;
+						maxLat = maxLat + latOffset;
+						minZoom = -10 * factor;
+						crs = L.CRS.EPSG3857;
+						console.log(maxLng, maxLat);
+					}
+					//self.bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(self.img.naturalHeight,self.img.naturalWidth));
+					self.bounds = L.latLngBounds(L.latLng(latOffset, lngOffset), L.latLng(maxLat, maxLng));
+					console.log(self.bounds);
+					self.map = L.map($view.attr('id'), {crs:crs,
+														//minZoom: -10,
+														minZoom: minZoom,
 														trackresize: false,
 														maxBoundsViscosity: 1.0,
 														attributionControl: false,
@@ -200,14 +231,14 @@ var waitForFinalEvent = (function () {
 		},
 /*
  *	Remove the plugin
- */  
+ */
 		destroy: function() {
 			$(window).unbind("resize");
 			this.map.remove();
 			$(this.view).remove();
 			$.Widget.prototype.destroy.call(this);
 		},
-  
+
 		_setOption: function(key, value) {
 			switch(key) {
 				case 'zoomStep':
@@ -367,7 +398,7 @@ var waitForFinalEvent = (function () {
 					hvw = width/zoom/2;
 					hvh = height/zoom/2;
 				}
-						
+
 				var	east = center.lng + hvw,
 					west = center.lng - hvw,
 					north = center.lat + hvh,
@@ -453,8 +484,8 @@ var waitForFinalEvent = (function () {
 			return this;
 		},
 /*
- *	Return the relative image coordinate for a Leaflet event 
- */		
+ *	Return the relative image coordinate for a Leaflet event
+ */
 		eventToImg: function(ev) {
 			if (this.ready) {
 				var img = this.img,
