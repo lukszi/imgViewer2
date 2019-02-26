@@ -105,7 +105,7 @@ var waitForFinalEvent = (function () {
 					var crs = L.CRS.Simple;
 
 					// switch to a smaller coordinate system
-					if(this.options.smallScope)
+					if(this.options.actLikeAMap)
 					{
 						var normTo = 0.0001;
 						var factor = 0;
