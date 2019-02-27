@@ -116,19 +116,14 @@ var waitForFinalEvent = (function () {
 						else{
 							self.factor = self.normTo/self.maxLng;
 						}
-						//self.lngOffset = 6.08342;
-						//self.latOffset = 50.77664;
 						self.maxLng = self.factor * self.maxLng;
 						self.maxLat = self.factor * self.maxLat;
 						self.maxLng = self.maxLng + self.lngOffset;
 						self.maxLat = self.maxLat + self.latOffset;
 						self.minZoom = -10 * self.factor;
 						self.crs = L.CRS.EPSG3857;
-						console.log(self.maxLng, self.maxLat);
 					}
-					//self.bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(self.img.naturalHeight,self.img.naturalWidth));
 					self.bounds = L.latLngBounds(L.latLng(self.latOffset, self.lngOffset), L.latLng(self.maxLat, self.maxLng));
-					console.log(self.bounds);
 					self.map = L.map($view.attr('id'), {crs:self.crs,
 														//minZoom: -10,
 														minZoom: self.minZoom,
