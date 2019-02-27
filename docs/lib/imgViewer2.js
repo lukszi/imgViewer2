@@ -31,9 +31,10 @@ var waitForFinalEvent = (function () {
 			zoomable: true,
 			dragable: true,
 			onClick: $.noop,
-			onReady: $.noop
+			onReady: $.noop,
+			actLikeAMap: false,
 		},
-		
+
 		_create: function() {
 			var self = this;
 			if (!$(this.element).is("img")) {
@@ -74,7 +75,7 @@ var waitForFinalEvent = (function () {
 					};
 /*
  *			cache the image margin/border size information
- *			because of IE8 limitations left and right borders are assumed to be the same width 
+ *			because of IE8 limitations left and right borders are assumed to be the same width
  *			and likewise top and bottom borders
  */
 					self.offsetBorder = {
@@ -97,9 +98,35 @@ var waitForFinalEvent = (function () {
 								height: height+"px"
 					});
 //			add the leaflet map
-					self.bounds = L.latLngBounds(L.latLng(0,0), L.latLng(self.img.naturalHeight,self.img.naturalWidth));
-					self.map = L.map($view.attr('id'), {crs:L.CRS.Simple,
-														minZoom: -10,
+					self.maxLng = self.img.naturalWidth;
+					self.maxLat = self.img.naturalHeight;
+					self.lngOffset = 0;
+					self.latOffset = 0;
+					self.crs = L.CRS.Simple;
+					self.minZoom = -10;
+
+					// switch to a smaller coordinate system
+					if(self.options.actLikeAMap)
+					{
+						self.normTo = 0.001;
+						self.factor = 0;
+						if(self.maxLat > self.maxLng){
+							self.factor = self.normTo/self.maxLat;
+						}
+						else{
+							self.factor = self.normTo/self.maxLng;
+						}
+						self.maxLng = self.factor * self.maxLng;
+						self.maxLat = self.factor * self.maxLat;
+						self.maxLng = self.maxLng + self.lngOffset;
+						self.maxLat = self.maxLat + self.latOffset;
+						self.minZoom = -10 * self.factor;
+						self.crs = L.CRS.EPSG3857;
+					}
+					self.bounds = L.latLngBounds(L.latLng(self.latOffset, self.lngOffset), L.latLng(self.maxLat, self.maxLng));
+					self.map = L.map($view.attr('id'), {crs:self.crs,
+														//minZoom: -10,
+														minZoom: self.minZoom,
 														trackresize: false,
 														maxBoundsViscosity: 1.0,
 														attributionControl: false,
@@ -151,14 +178,14 @@ var waitForFinalEvent = (function () {
 					self.map.on('resize', function() {
 						self.map.options.minZoom = -10;
 						self.map.fitBounds(self.bounds,{animate:false});
-						self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(0,0), L.latLng(self.img.naturalHeight,self.img.naturalWidth)),true);
+						self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(self.latOffset,self.lngOffset), L.latLng(self.maxLat,self.maxLng)),true);
 						self.map.options.maxZoom = self.leafletZoom(self.options.zoomMax);
 						waitForFinalEvent(function(){
 							self.resize = false;
 							self._view_resize();
 							self.map.options.minZoom = -10;
 							self.map.fitBounds(self.bounds,{animate:false});
-							self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(0,0), L.latLng(self.img.naturalHeight,self.img.naturalWidth)),true);
+							self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(self.latOffset,self.lngOffset), L.latLng(self.maxLat,self.maxLng)),true);
 							self.map.options.maxZoom = self.leafletZoom(self.options.zoomMax);
 						}, 300, $img[0].id);
 					});
@@ -200,14 +227,14 @@ var waitForFinalEvent = (function () {
 		},
 /*
  *	Remove the plugin
- */  
+ */
 		destroy: function() {
 			$(window).unbind("resize");
 			this.map.remove();
 			$(this.view).remove();
 			$.Widget.prototype.destroy.call(this);
 		},
-  
+
 		_setOption: function(key, value) {
 			switch(key) {
 				case 'zoomStep':
@@ -367,7 +394,7 @@ var waitForFinalEvent = (function () {
 					hvw = width/zoom/2;
 					hvh = height/zoom/2;
 				}
-						
+
 				var	east = center.lng + hvw,
 					west = center.lng - hvw,
 					north = center.lat + hvh,
@@ -453,8 +480,8 @@ var waitForFinalEvent = (function () {
 			return this;
 		},
 /*
- *	Return the relative image coordinate for a Leaflet event 
- */		
+ *	Return the relative image coordinate for a Leaflet event
+ */
 		eventToImg: function(ev) {
 			if (this.ready) {
 				var img = this.img,
