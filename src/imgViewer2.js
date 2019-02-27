@@ -98,39 +98,40 @@ var waitForFinalEvent = (function () {
 								height: height+"px"
 					});
 //			add the leaflet map
-					var maxLng = self.img.naturalWidth;
-					var maxLat = self.img.naturalHeight;
-					var lngOffset = 0;
-					var latOffset = 0;
-					var crs = L.CRS.Simple;
+					self.maxLng = self.img.naturalWidth;
+					self.maxLat = self.img.naturalHeight;
+					self.lngOffset = 0;
+					self.latOffset = 0;
+					self.crs = L.CRS.Simple;
+					self.minZoom = -10;
 
 					// switch to a smaller coordinate system
-					if(this.options.actLikeAMap)
+					if(self.options.actLikeAMap)
 					{
-						var normTo = 0.0001;
-						var factor = 0;
-						if(maxLat > maxLng){
-							factor = normTo/maxLat;
+						self.normTo = 0.001;
+						self.factor = 0;
+						if(self.maxLat > self.maxLng){
+							self.factor = self.normTo/self.maxLat;
 						}
 						else{
-							factor = normTo/maxLng;
+							self.factor = self.normTo/self.maxLng;
 						}
-						lngOffset = 6.08342;
-						latOffset = 50.77664;
-						maxLng = factor * maxLng;
-						maxLat = factor * maxLat;
-						maxLng = maxLng + lngOffset;
-						maxLat = maxLat + latOffset;
-						minZoom = -10 * factor;
-						crs = L.CRS.EPSG3857;
-						console.log(maxLng, maxLat);
+						//self.lngOffset = 6.08342;
+						//self.latOffset = 50.77664;
+						self.maxLng = self.factor * self.maxLng;
+						self.maxLat = self.factor * self.maxLat;
+						self.maxLng = self.maxLng + self.lngOffset;
+						self.maxLat = self.maxLat + self.latOffset;
+						self.minZoom = -10 * self.factor;
+						self.crs = L.CRS.EPSG3857;
+						console.log(self.maxLng, self.maxLat);
 					}
 					//self.bounds = L.latLngBounds(L.latLng(0, 0), L.latLng(self.img.naturalHeight,self.img.naturalWidth));
-					self.bounds = L.latLngBounds(L.latLng(latOffset, lngOffset), L.latLng(maxLat, maxLng));
+					self.bounds = L.latLngBounds(L.latLng(self.latOffset, self.lngOffset), L.latLng(self.maxLat, self.maxLng));
 					console.log(self.bounds);
-					self.map = L.map($view.attr('id'), {crs:crs,
+					self.map = L.map($view.attr('id'), {crs:self.crs,
 														//minZoom: -10,
-														minZoom: minZoom,
+														minZoom: self.minZoom,
 														trackresize: false,
 														maxBoundsViscosity: 1.0,
 														attributionControl: false,
