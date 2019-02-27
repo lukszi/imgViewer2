@@ -183,14 +183,14 @@ var waitForFinalEvent = (function () {
 					self.map.on('resize', function() {
 						self.map.options.minZoom = -10;
 						self.map.fitBounds(self.bounds,{animate:false});
-						self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(0,0), L.latLng(self.img.naturalHeight,self.img.naturalWidth)),true);
+						self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(self.latOffset,self.lngOffset), L.latLng(self.maxLat,self.maxLng)),true);
 						self.map.options.maxZoom = self.leafletZoom(self.options.zoomMax);
 						waitForFinalEvent(function(){
 							self.resize = false;
 							self._view_resize();
 							self.map.options.minZoom = -10;
 							self.map.fitBounds(self.bounds,{animate:false});
-							self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(0,0), L.latLng(self.img.naturalHeight,self.img.naturalWidth)),true);
+							self.map.options.minZoom = self.map.getBoundsZoom(L.latLngBounds(L.latLng(self.latOffset,self.lngOffset), L.latLng(self.maxLat,self.maxLng)),true);
 							self.map.options.maxZoom = self.leafletZoom(self.options.zoomMax);
 						}, 300, $img[0].id);
 					});
