@@ -108,7 +108,7 @@ var waitForFinalEvent = (function () {
 					// switch to a smaller coordinate system
 					if(self.options.actLikeAMap)
 					{
-						self.normTo = 0.001;
+						self.normTo = 0.01;
 						self.factor = 0;
 						if(self.maxLat > self.maxLng){
 							self.factor = self.normTo/self.maxLat;
